@@ -1006,10 +1006,6 @@ module fv_arrays_mod
 
    integer :: bc_update_interval = 3   !< Default setting for interval (hours) between external regional BC data files.
 
-   logical :: regional_bcs_from_gsi = .false.   !< Default setting for using DA-updated BC files.
-
-   logical :: write_restart_with_bcs = .false.   !< Default setting for writing restart files with boundary rows.
-
    !>Convenience pointers
    integer, pointer :: grid_number
 

@@ -165,7 +165,6 @@ module fv_restart_mod
   use fv_timing_mod,       only: timing_on, timing_off
   use fms_mod,             only: file_exist
   use fv_treat_da_inc_mod, only: read_da_inc
-  use fv_regional_mod,     only: write_full_fields
 #ifdef MULTI_GASES
   use multi_gases_mod,  only:  virq
 #endif
@@ -355,7 +354,7 @@ contains
     endif
     if ( Atm(n)%flagstruct%external_ic ) then
          if( is_master() ) write(*,*) 'Calling get_external_ic'
-         call get_external_ic(Atm(n:n), Atm(n)%domain, cold_start_grids(n), dt_atmos) 
+         call get_external_ic(Atm(n:n), Atm(n)%domain, cold_start_grids(n)) 
          if( is_master() ) write(*,*) 'IC generated from the specified external source'
     endif
 
@@ -1422,10 +1421,6 @@ contains
     character(len=*),    intent(in)    :: timestamp
     logical, intent(IN) :: grids_on_this_pe(:)
     integer n
-
-    if(Atm(1)%flagstruct%write_restart_with_bcs)then
-      call write_full_fields(Atm)
-    endif
 
     call fv_io_write_restart(Atm, grids_on_this_pe, timestamp)
     do n=1,size(Atm)
