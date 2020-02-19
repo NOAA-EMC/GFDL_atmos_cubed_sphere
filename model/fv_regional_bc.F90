@@ -370,11 +370,11 @@ contains
       endif
 !
 !-----------------------------------------------------------------------
-!***  Check if the desired number of blending rows are present ib
+!***  Check if the desired number of blending rows are present in
 !***  the boundary files.
 !-----------------------------------------------------------------------
 !
-      nrows_blend_user=Atm%flagstruct%nrows_blend                          !<-- # of blending rows the user wants to apply.
+      nrows_blend_user=Atm%flagstruct%nrows_blend                          !<-- # of blending rows the user wnats to apply.
 !
       call check(nf90_inq_dimid(ncid,'halo',dimid))                        !<-- ID of the halo dimension.
       call check(nf90_inquire_dimension(ncid,dimid,len=nrows_bc_data))     !<-- Total # of rows of BC data (bndry + blending)
@@ -3108,7 +3108,8 @@ contains
         write(0,*)' check netcdf status=',status
         write(0,10001)trim(nf90_strerror(status))
 10001   format(' NetCDF error ',a)
-        stop "Stopped"
+!xxx    stop "Stopped"
+        call abort()
       endif
       end subroutine check
 !
@@ -5792,8 +5793,9 @@ subroutine remap_scalar_nggps_regional_bc(Atm                         &
         return
       endif
 !
-      call check(nf90_create(filename_core_new,nf90_clobber,ncid_core_new))
-      write(0,*)' create_restart_with_bcs created netcdf file ',trim(filename_core_new)
+      call check(nf90_create(filename_core_new                          &
+                            ,cmode=or(nf90_clobber,nf90_64bit_offset)   &
+                            ,ncid=ncid_core_new))
 !
 !-----------------------------------------------------------------------
 !***  Define the output file's dimensions and insert them into the file.
@@ -5822,7 +5824,6 @@ subroutine remap_scalar_nggps_regional_bc(Atm                         &
       call check(nf90_open(filename_core,nf90_nowrite,ncid_core))          !<-- The core restart file's ID
 !
       call check(nf90_inquire(ncid_core,nvariables=nv_core))               !<-- The TOTAL number of core restart file variables
-      write(0,*)trim(filename_core),' has ',nv_core,' variables'
 !
       do n=1,nv_core
         var_id=n
@@ -5895,7 +5896,9 @@ subroutine remap_scalar_nggps_regional_bc(Atm                         &
 !***  The second file to be handled is the tracer restart file.
 !-----------------------------------------------------------------------
 !
-      call check(nf90_create(filename_tracers_new,nf90_clobber,ncid_tracers_new))
+      call check(nf90_create(filename_tracers_new                       &
+                            ,cmode=or(nf90_clobber,nf90_64bit_offset)   &
+                            ,ncid=ncid_tracers_new))
 !
 !-----------------------------------------------------------------------
 !***  Define the output file's dimensions and insert them into the file.
@@ -5922,7 +5925,6 @@ subroutine remap_scalar_nggps_regional_bc(Atm                         &
       call check(nf90_open(filename_tracers,nf90_nowrite,ncid_tracers))    !<-- The tracer restart file's ID
 !
       call check(nf90_inquire(ncid_tracers,nvariables=nv_tracers))         !<-- The TOTAL number of tracer restart file variables
-      write(0,*)trim(filename_tracers),' has ',nv_tracers,' variables'
 !
       do n=1,nv_tracers
         var_id=n

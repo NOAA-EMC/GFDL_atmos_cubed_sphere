@@ -896,6 +896,12 @@ module fv_control_mod
          Atm(n)%neststruct%refinement             = -1
       end if
 
+      if (Atm(n)%flagstruct%regional) then
+         if ( consv_te > 0.) then
+            call mpp_error(FATAL, 'The global energy fixer cannot be used on a regional grid. consv_te must be set to 0.')
+         end if
+      end if
+
       if (Atm(n)%neststruct%nested) then
          if (Atm(n)%flagstruct%grid_type >= 4 .and. Atm(n)%parent_grid%flagstruct%grid_type >= 4) then
             Atm(n)%flagstruct%dx_const = Atm(n)%parent_grid%flagstruct%dx_const / real(Atm(n)%neststruct%refinement)
