@@ -1812,21 +1812,6 @@ contains
       else                                                                 !<-- Rotate winds and vertically remap BC file data
 !
 !-----------------------------------------------------------------------
-!***  We now have the boundary variables from the BC file on the
-!***  levels of the input data.  Before remapping the 3-D variables
-!***  from the input levels to the model integration levels we will
-!***  simply copy the 2-D sfc pressure (ps) into the model array.
-!-----------------------------------------------------------------------
-!
-!     do j=jsd,jed
-!     do i=isd,ied
-!       Atm%ps(i,j)=ps(i,j)
-!     enddo
-!     enddo
-!
-!     deallocate(ps%north,ps%south,ps%east,ps%west)
-!
-!-----------------------------------------------------------------------
 !***  One final array needs to be allocated.  It is the sfc pressure
 !***  in the domain's boundary region that is derived from the input
 !***  sfc pressure from the BC files.  The derived sfc pressure will
@@ -2080,8 +2065,6 @@ contains
               enddo
             enddo
 !
-!     write(0,22101)nside,is_u,ie_u,js_u,je_u
-22101 format(' regional_bc_data before remap_dwinds nside=',i2,' is_u=',i3,' ie_u=',i3,' js_u=',i3,' je_u=',i3)
             call remap_dwinds_regional_bc(Atm                           &
 
                                          ,is_input                      &  !<--
@@ -2122,7 +2105,6 @@ contains
 !-----------------------------------------------------------------------
 !
       call check(nf90_close(ncid))
-!     write(0,*)' closed BC netcdf file'
 !
 !-----------------------------------------------------------------------
 !***  Deallocate working arrays.
@@ -3185,8 +3167,6 @@ contains
 !
       allocate(BC_side%uc_BC(is_we:ie_we, js_we:je_we, klev)) ; BC_side%uc_BC=real_snan
       allocate(BC_side%v_BC (is_we:ie_we, js_we:je_we, klev)) ; BC_side%v_BC=real_snan
-!  write(0,66821)is_we,ie_we,js_we,je_we
-66821 format(' allocated uc_BC(',i3,':',i3,',',i3,':',i3,')')
 !
 !---------------------------------------------------------------------
 !
@@ -3417,7 +3397,6 @@ subroutine remap_scalar_nggps_regional_bc(Atm                         &
              BC_side%q_BC(i,j,k,iq) = qn1(i,k)
            enddo
          enddo
-!jaa       endif ! for remapping only the tracers included in the data that is read in
        endif ! skip cld_amt in the remap since it is not included in the input
       enddo
 
@@ -5746,15 +5725,15 @@ subroutine remap_scalar_nggps_regional_bc(Atm                         &
                   ,start=(/1/)                                          &
                   ,count=(/dim_lengths_core(n)/)))
         deallocate(dim_values)
-     enddo
+      enddo
 !
       write( 0,*)' nf90_unlimited=',nf90_unlimited
-     var_id=ndims_core                                                     !<-- Time is the final dimension; treat it separately.
-     allocate(dim_values(1))
-     dim_values(1)=1
-     call check(nf90_put_var(ncid_core_new,var_id                       &
-               ,dim_values(:)))
-     deallocate(dim_values)
+      var_id=ndims_core                                                    !<-- Time is the final dimension; treat it separately.
+      allocate(dim_values(1))
+      dim_values(1)=1
+      call check(nf90_put_var(ncid_core_new,var_id                      &
+                ,dim_values(:)))
+      deallocate(dim_values)
 !
 !-----------------------------------------------------------------------
 !
@@ -6089,7 +6068,7 @@ subroutine remap_scalar_nggps_regional_bc(Atm                         &
       endif
 !
 !-----------------------------------------------------------------------
-!***  The following are local bounds based on the the indexing of
+!***  The following are local bounds based on the indexing of
 !***  the pointers to the tracer arrays in memory.  They are all
 !***  relative to 1 since each task pointed at the arrays as
 !***  ptr => Atm%q(:,:,:,sphum_index) rather than as was done
@@ -6463,6 +6442,10 @@ subroutine remap_scalar_nggps_regional_bc(Atm                         &
 
   end subroutine exch_uv
 
+!---------------------------------------------------------------------
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!---------------------------------------------------------------------
+
   subroutine get_data_source(source,regional)
 !
 ! This routine extracts the data source information if it is present in the datafile.
@@ -6483,6 +6466,10 @@ subroutine remap_scalar_nggps_regional_bc(Atm                         &
        source='No Source Attribute'
       endif
   end subroutine get_data_source
+
+!---------------------------------------------------------------------
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!---------------------------------------------------------------------
 
   subroutine set_delp_and_tracers(BC_side,npz,nwat)
 !
