@@ -1423,10 +1423,6 @@ contains
     logical, intent(IN) :: grids_on_this_pe(:)
     integer n
 
-    if(Atm(1)%flagstruct%write_restart_with_bcs)then
-      call write_full_fields(Atm)
-    endif
-
     call fv_io_write_restart(Atm, grids_on_this_pe, timestamp)
     do n=1,size(Atm)
        if (Atm(n)%neststruct%nested .and. grids_on_this_pe(n)) then
@@ -1452,7 +1448,6 @@ contains
     integer, allocatable :: pelist(:)
     character(len=128):: tracer_name
     character(len=3):: gn
-
 
     ntileMe = size(Atm(:))
 
@@ -1528,6 +1523,11 @@ contains
      do n=1,ntileMe
        if (Atm(n)%neststruct%nested .and. grids_on_this_pe(n)) call fv_io_write_BCs(Atm(n))
      end do
+
+     if(Atm(1)%flagstruct%write_restart_with_bcs)then
+       call write_full_fields(Atm)
+     endif
+
    endif
 
     module_is_initialized = .FALSE.
