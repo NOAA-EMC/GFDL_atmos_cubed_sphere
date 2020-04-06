@@ -1,21 +1,22 @@
 !***********************************************************************
-!*                   GNU General Public License                        *
-!* This file is a part of fvGFS.                                       *
-!*                                                                     *
-!* fvGFS is free software; you can redistribute it and/or modify it    *
-!* and are expected to follow the terms of the GNU General Public      *
-!* License as published by the Free Software Foundation; either        *
-!* version 2 of the License, or (at your option) any later version.    *
-!*                                                                     *
-!* fvGFS is distributed in the hope that it will be useful, but        *
-!* WITHOUT ANY WARRANTY; without even the implied warranty of          *
-!* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU   *
-!* General Public License for more details.                            *
-!*                                                                     *
-!* For the full text of the GNU General Public License,                *
-!* write to: Free Software Foundation, Inc.,                           *
-!*           675 Mass Ave, Cambridge, MA 02139, USA.                   *
-!* or see:   http://www.gnu.org/licenses/gpl.html                      *
+!*                   GNU Lesser General Public License
+!*
+!* This file is part of the FV3 dynamical core.
+!*
+!* The FV3 dynamical core is free software: you can redistribute it
+!* and/or modify it under the terms of the
+!* GNU Lesser General Public License as published by the
+!* Free Software Foundation, either version 3 of the License, or
+!* (at your option) any later version.
+!*
+!* The FV3 dynamical core is distributed in the hope that it will be
+!* useful, but WITHOUT ANYWARRANTY; without even the implied warranty
+!* of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+!* See the GNU General Public License for more details.
+!*
+!* You should have received a copy of the GNU Lesser General Public
+!* License along with the FV3 dynamical core.
+!* If not, see <http://www.gnu.org/licenses/>.
 !***********************************************************************
 
 module fv_regional_mod
@@ -33,7 +34,7 @@ module fv_regional_mod
    use mpp_mod,           only: FATAL, input_nml_file,                  &
                                 mpp_error ,mpp_pe, mpp_sync,            &
                                 mpp_npes, mpp_root_pe, mpp_gather,      &
-                                mpp_get_current_pelist, NULL_PE
+                                mpp_get_current_pelist, NOTE, NULL_PE
    use mpp_io_mod
    use tracer_manager_mod,only: get_tracer_index,get_tracer_names
    use field_manager_mod, only: MODEL_ATMOS
@@ -262,6 +263,7 @@ contains
 !
       real :: ps1
 !
+      character(len=2) :: char2_1,char2_2
       character(len=3) :: int_to_char
       character(len=6) :: fmt='(i3.3)'
       character(len=50) :: file_name
@@ -311,7 +313,7 @@ contains
       east_bc =.false.
       west_bc =.false.
 !
-   write(0,*)' enter setup_regional_BC isd=',isd,' ied=',ied,' jsd=',jsd,' jed=',jed    
+!  write(0,*)' enter setup_regional_BC isd=',isd,' ied=',ied,' jsd=',jsd,' jed=',jed    
 !-----------------------------------------------------------------------
 !***  Which side(s) of the domain does this task lie on if any?
 !-----------------------------------------------------------------------
@@ -382,13 +384,9 @@ contains
       nrows_blend_in_data=nrows_bc_data-nhalo_data                         !<-- # of blending rows in the BC files.
 !
       if(nrows_blend_user>nrows_blend_in_data)then                         !<-- User wants more blending rows than are in the BC file.
-        if(is_master()) then
-          write(0,10011)nrows_blend_user,nrows_blend_in_data
-10011     format(' User wants to use ',i3,' blending rows but only '    &
-                ,i3,' blending rows are in the BC file!')
-          write(0,*)' Aborting!!!'
-        endif
-        call abort()
+        write(char2_1,'(I2.2)')nrows_blend_user
+        write(char2_2,'(I2.2)')nrows_blend_in_data
+        call mpp_error(FATAL,'User wants to use '//char2_1//' blending rows but only '//char2_2//' blending rows are in the BC file!')
       else
         nrows_blend=nrows_blend_in_data                                    !<-- # of blending rows in the BC files.
       endif
@@ -1037,7 +1035,8 @@ contains
 !
       call check(nf90_open(filename,nf90_nowrite,ncid_grid))               !<-- Open the grid data netcdf file; get the file ID.
 !
-      write(0,*)' opened grid file ',trim(filename)
+      call  mpp_error(NOTE,' opened grid file '//trim(filename))
+!
 !-----------------------------------------------------------------------
 !***  The longitude and latitude are on the super grid.  We need only
 !***  the points on each corner of the grid cells which is every other
@@ -3086,11 +3085,9 @@ contains
       integer,intent(in) :: status
 !
       if(status /= nf90_noerr) then
-        write(0,*)' check netcdf status=',status
-        write(0,10001)trim(nf90_strerror(status))
-10001   format(' NetCDF error ',a)
-        call abort()
+        call mpp_error(FATAL,' NetCDF error '//trim(nf90_strerror(status)))
       endif
+!
       end subroutine check
 !
 !-----------------------------------------------------------------------
@@ -3136,8 +3133,6 @@ contains
       endif
 !
       allocate(BC_side%delp_BC (is_0:ie_0,js_0:je_0,klev)) ; BC_side%delp_BC=real_snan
-!  write(0,66811)is_0,ie_0,js_0,je_0
-66811 format(' allocated delp_BC(',i3,':',i3,',',i3,':',i3,')')
       allocate(BC_side%divgd_BC(is_0:ie_0,js_0:je_0,klev)) ; BC_side%divgd_BC=real_snan
 !
       allocate(BC_side%q_BC    (is_0:ie_0,js_0:je_0,1:klev,1:ntracers)) ; BC_side%q_BC=real_snan
@@ -4359,9 +4354,7 @@ subroutine remap_scalar_nggps_regional_bc(Atm                         &
 #endif
         case ('q')
           if(iq<1)then
-            write(0,101)
-  101       format(' iq<1 is not a valid index for q_BC array in retrieve_bc_variable_data')
-            call abort()
+            call mpp_error(FATAL,' iq<1 is not a valid index for q_BC array in retrieve_bc_variable_data')
           endif
           lbnd1=lbound(bc_side_t0%q_BC,1)
           lbnd2=lbound(bc_side_t0%q_BC,2)
@@ -6031,7 +6024,7 @@ subroutine remap_scalar_nggps_regional_bc(Atm                         &
 !
       count_i=iend_g-istart_g+1
       count_j=jend_g-jstart_g+1
-      nz=size(fields_tracers(nv)%ptr,3)
+      nz=size(fields_tracers(1)%ptr,3)
 !
       allocate( global_field(istart_g:iend_g, jstart_g:jend_g, 1:nz) )
 !

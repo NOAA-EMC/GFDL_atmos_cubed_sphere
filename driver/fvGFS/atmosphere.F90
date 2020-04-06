@@ -1631,17 +1631,6 @@ contains
      call nullify_domain()
      call timing_on('FV_DIAG')
 
-      do k=1, Atm(n)%npz
-      do j=lbound(Atm(n)%pt,2),ubound(Atm(n)%pt,2)
-      do i=lbound(Atm(n)%pt,1),ubound(Atm(n)%pt,1)
-        if(Atm(n)%pt(i,j,k)>400.)then
-          write(0,44351)i,j,k,Atm(n)%pt(i,j,k)
-44351     format(' BAD T atmosphere_state_update before fv_diag pt(',i3,',',i3,',',i3,')=',e12.5)
-        endif
-      enddo
-      enddo
-      enddo
-
      call fv_diag(Atm(mytile:mytile), zvir, fv_time, Atm(mytile)%flagstruct%print_freq)
      first_diag = .false.
      call timing_off('FV_DIAG')

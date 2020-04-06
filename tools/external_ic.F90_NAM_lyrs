@@ -842,14 +842,6 @@ contains
           Atm(n)%ak(1:npz+1) = ak(itoa:levp+1)
           Atm(n)%bk(1:npz+1) = bk(itoa:levp+1)
           call set_external_eta (Atm(n)%ak, Atm(n)%bk, Atm(n)%ptop, Atm(n)%ks)
-!       else
-!         if ( npz <= 64 ) then
-!            Atm(n)%ak(:) = ak_sj(:)
-!            Atm(n)%bk(:) = bk_sj(:)
-!            Atm(n)%ptop = Atm(n)%ak(1)
-!         else
-!            call set_eta(npz, ks, Atm(n)%ptop, Atm(n)%ak, Atm(n)%bk)
-!         endif
         endif
         ! call vertical remapping algorithms
         if(is_master())  write(*,*) 'GFS ak =', ak,' FV3 ak=',Atm(n)%ak
