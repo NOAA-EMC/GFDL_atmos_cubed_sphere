@@ -110,6 +110,7 @@ contains
 ! Local
    integer  sphum, liq_wat, ice_wat
    integer  rainwat, snowwat, graupel          ! GFDL Cloud Microphysics
+   integer  hailwat                            ! NSSL Cloud Microphysics
    real ratio(ifirst:ilast)
    real pek, lnp, ak1, rdg, dpd, zvir
    integer i, j, k, n

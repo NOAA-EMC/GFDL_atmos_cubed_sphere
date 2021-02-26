@@ -109,7 +109,7 @@ module fv_arrays_mod
 
      logical :: initialized = .false.
      real  sphum, liq_wat, ice_wat       ! GFDL physics
-     real  rainwat, snowwat, graupel
+     real  rainwat, snowwat, graupel, hailwat
 
      real :: efx(max_step), efx_sum, efx_nest(max_step), efx_sum_nest, mtq(max_step), mtq_sum
      integer :: steps
