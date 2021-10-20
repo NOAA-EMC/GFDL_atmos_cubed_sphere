@@ -4186,10 +4186,10 @@ contains
          do j=1,jm
             pmax = a(1,j)
             pmin = a(1,j)
-         do i=2,im
-            pmax = max(pmax, a(i,j))
-            pmin = min(pmin, a(i,j))
-         enddo
+            do i=2,im
+               pmax = max(pmax, a(i,j))
+               pmin = min(pmin, a(i,j))
+            enddo
             qmax(j) = pmax
             qmin(j) = pmin
          enddo
@@ -4212,10 +4212,10 @@ contains
          do j=1,jm
             pmax8 = a(1,j)
             pmin8 = a(1,j)
-         do i=2,im
-            pmax8 = max(pmax8, a(i,j))
-            pmin8 = min(pmin8, a(i,j))
-         enddo
+            do i=2,im
+               pmax8 = max(pmax8, a(i,j))
+               pmin8 = min(pmin8, a(i,j))
+            enddo
             qmax8(j) = pmax8
             qmin8(j) = pmin8
          enddo

@@ -3558,10 +3558,10 @@ module fv_nwp_nudge_mod
          do j=1,jmax
             pmax = a(1,j)
             pmin = a(1,j)
-         do i=2,imax
-            pmax = max(pmax, a(i,j))
-            pmin = min(pmin, a(i,j))
-         enddo
+            do i=2,imax
+               pmax = max(pmax, a(i,j))
+               pmin = min(pmin, a(i,j))
+            enddo
             qmax(j) = pmax
             qmin(j) = pmin
          enddo
@@ -3584,10 +3584,10 @@ module fv_nwp_nudge_mod
          do j=1,jmax
             pmax8 = a(1,j)
             pmin8 = a(1,j)
-         do i=2,imax
-            pmax8 = max(pmax8, a(i,j))
-            pmin8 = min(pmin8, a(i,j))
-         enddo
+            do i=2,imax
+               pmax8 = max(pmax8, a(i,j))
+               pmin8 = min(pmin8, a(i,j))
+            enddo
             qmax8(j) = pmax8
             qmin8(j) = pmin8
          enddo
