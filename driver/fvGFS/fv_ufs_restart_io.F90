@@ -1,12 +1,14 @@
 module fv_ufs_restart_io_mod
 
   use esmf
-  use mpp_mod,            only: mpp_pe, mpp_root_pe, mpp_chksum, mpp_npes, mpp_get_current_pelist
-  use fv_arrays_mod,      only: fv_atmos_type
-  use tracer_manager_mod, only: get_tracer_names
-  use field_manager_mod,  only: MODEL_ATMOS
-  use atmosphere_mod,     only: atmosphere_resolution
-  use fv_io_mod,          only: fv_io_write_BCs
+  use mpp_mod,              only: mpp_pe, mpp_root_pe, mpp_chksum, mpp_npes, &
+                                  mpp_get_current_pelist, mpp_error, FATAL
+  use fv_arrays_mod,        only: fv_atmos_type
+  use tracer_manager_mod,   only: get_tracer_names
+  use field_manager_mod,    only: MODEL_ATMOS
+  use atmosphere_mod,       only: atmosphere_resolution
+  use fv_io_mod,            only: fv_io_write_BCs
+  use module_diag_hailcast, only: do_hailcast, hailcast_wdur, hailcast_wup_mask
 
   implicit none
 
@@ -16,6 +18,7 @@ module fv_ufs_restart_io_mod
   public fv_core_restart_bundle_setup
   public fv_srf_wnd_restart_bundle_setup
   public fv_tracer_restart_bundle_setup
+  public fv_diag_restart_bundle_setup
 
   private
 
@@ -36,7 +39,12 @@ module fv_ufs_restart_io_mod
   real, allocatable, target, dimension(:,:,:,:) :: tracers_var3
   character(len=32), allocatable, dimension(:) :: tracers_var3_names
 
-  type(ESMF_FieldBundle) :: core_bundle, srf_wnd_bundle, tracer_bundle
+  ! fv_diag.res
+  integer :: nvar2d_diag = 0
+  real, allocatable, target, dimension(:,:,:) :: diag_var2
+  character(len=32), allocatable, dimension(:) :: diag_var2_names
+
+  type(ESMF_FieldBundle) :: core_bundle, srf_wnd_bundle, tracer_bundle, diag_bundle
 
  contains
 
@@ -153,6 +161,15 @@ module fv_ufs_restart_io_mod
       tracers_var3_names(nt) = tracer_name
    enddo
 
+   if (do_hailcast) then
+      ! diag
+      nvar2d_diag = 2
+      allocate (diag_var2(nx,ny,nvar2d_diag), diag_var2_names(nvar2d_diag))
+      diag_var2 = 0.0
+      diag_var2_names(1) = 'hailcast_wdur'
+      diag_var2_names(2) = 'hailcast_wup_mask'
+   endif
+
  end subroutine fv_dyn_restart_register
 
  subroutine fv_dyn_restart_output(Atm, timestamp)
@@ -221,6 +238,12 @@ module fv_ufs_restart_io_mod
    do nt = ntprog+1, nvar3d_tracers
      tracers_var3(:,:,:,nt) = Atm%qdiag(isc:iec,jsc:jec,:,nt)
    enddo
+
+   ! ---- fv_diag.res
+   if (do_hailcast) then
+     diag_var2(:,:,1) = hailcast_wdur(isc:iec,jsc:jec)
+     diag_var2(:,:,2) = hailcast_wup_mask(isc:iec,jsc:jec)
+   end if
 
    ! Instead of creating yet another esmf bundle just to write Atm%ak and Atm%bk, write them here synchronously
    call write_ak_bk(Atm, timestamp)
@@ -351,6 +374,47 @@ module fv_ufs_restart_io_mod
    enddo
 
  end subroutine fv_tracer_restart_bundle_setup
+
+ subroutine fv_diag_restart_bundle_setup(bundle, grid, rc)
+!
+!-------------------------------------------------------------
+!*** set esmf bundle for fv_diag restart fields
+!------------------------------------------------------------
+!
+   use esmf
+
+   implicit none
+
+   type(ESMF_FieldBundle),intent(inout)        :: bundle
+   type(ESMF_Grid),intent(inout)               :: grid
+   integer,intent(out)                         :: rc
+
+!*** local variables
+   integer i, j, k, n
+   character(128)    :: bdl_name
+   type(ESMF_Field)  :: field
+   character(128)    :: outputfile
+   integer :: num
+   real,dimension(:,:),pointer   :: temp_r2d
+   real,dimension(:,:,:),pointer   :: temp_r3d
+
+   if (.not. do_hailcast) then
+     call mpp_error(FATAL, 'fv_diag_restart_bundle_setup called with do_hailcast == .false.')
+   end if
+
+   diag_bundle = bundle
+
+   call ESMF_FieldBundleGet(bundle, name=bdl_name,rc=rc)
+   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
+
+   outputfile = trim(bdl_name)
+
+   do num = 1,nvar2d_diag
+       temp_r2d => diag_var2(:,:,num)
+       call create_2d_field_and_add_to_bundle(temp_r2d, trim(diag_var2_names(num)), trim(outputfile), grid, bundle)
+   enddo
+
+ end subroutine fv_diag_restart_bundle_setup
 
  subroutine create_2d_field_and_add_to_bundle(temp_r2d, field_name, outputfile, grid, bundle)
 

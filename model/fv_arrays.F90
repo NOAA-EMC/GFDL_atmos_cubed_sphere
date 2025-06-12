@@ -1354,7 +1354,7 @@ module fv_arrays_mod
 !!!!!!!!!!!!!!
      type(FmsNetcdfFile_t) :: Fv_restart
      type(FmsNetcdfDomainFile_t) :: SST_restart, Fv_restart_tile, &
-          Rsf_restart, Mg_restart, Lnd_restart, Tra_restart
+          Rsf_restart, Mg_restart, Lnd_restart, Tra_restart, Diag_restart
      logical :: Fv_restart_is_open=.false.
      logical :: SST_restart_is_open=.false.
      logical :: Fv_restart_tile_is_open=.false.
@@ -1362,6 +1362,7 @@ module fv_arrays_mod
      logical :: Mg_restart_is_open=.false.
      logical :: Lnd_restart_is_open=.false.
      logical :: Tra_restart_is_open=.false.
+     logical :: Diag_restart_is_open=.false.
      type(fv_nest_type) :: neststruct
 
      !Hold on to coarse-grid global grid, so we don't have to waste processor time getting it again when starting to do grid nesting
