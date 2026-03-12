@@ -920,6 +920,16 @@ CONTAINS
       IF (wdur .LT. RTIME) RTIME = wdur
 
       TFZL = tk_embryo
+
+      WFZLP = 0.0
+      ZFZL = 0.0
+      RFZL = 0.0
+      VUFZL = 0.0
+      DENSAFZL = 0.0
+      VUMAX = 0.0
+      RI = 0.0
+      RW =0.0
+
       CALL INTERPP(PA, WFZLP, TCA, tk_embryo, IFOUT, nz)
       CALL INTERP(h1d, ZFZL, WFZLP, IFOUT, PA, nz)
       CALL INTERP(RA,  RFZL, WFZLP, IFOUT, PA, nz)
